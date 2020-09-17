@@ -243,11 +243,11 @@ class Transaction {
 
   Future<void> sign(Wallet wallet) async {
     final signatureData = await getSignatureData();
-    final rawSignature = wallet.sign(signatureData);
+    final rawSignature = await wallet.sign(signatureData);
 
-    final id = encodeBytesToBase64(sha256.convert(rawSignature.bytes).bytes);
+    final id = encodeBytesToBase64(sha256.convert(rawSignature).bytes);
 
-    setSignature(encodeBytesToBase64(rawSignature.bytes), id);
+    setSignature(encodeBytesToBase64(rawSignature), id);
   }
 
   Future<bool> verify() async {

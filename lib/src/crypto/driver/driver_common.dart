@@ -1,9 +1,19 @@
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart' as crypto;
+import 'package:pointycastle/export.dart';
 
-Future<Uint8List> sha256(Uint8List data) async =>
-    crypto.sha256.convert(data).bytes;
+import '../../models/models.dart';
 
-Future<Uint8List> sha384(Uint8List data) async =>
-    crypto.sha384.convert(data).bytes;
+Future<Uint8List> signRsaPss(Uint8List data, Wallet wallet) async {
+  var signer = PSSSigner(RSAEngine(), SHA256Digest(), SHA256Digest())
+    ..init(
+      true,
+      ParametersWithSalt(
+        PrivateKeyParameter<RSAPrivateKey>(wallet.privateKey),
+        null,
+      ),
+    );
+
+  final signature = await signer.generateSignature(data);
+  return signature.bytes;
+}

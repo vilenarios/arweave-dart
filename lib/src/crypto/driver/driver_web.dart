@@ -1,10 +1,26 @@
+import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:html';
 
-final crypto = window.crypto.subtle;
+import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/src/web_crypto/web_crypto.dart' as web_crypto;
 
-Future<Uint8List> sha256(Uint8List data) async =>
-    crypto.digest()
+import '../../models/models.dart';
 
-Future<Uint8List> sha384(Uint8List data) async =>
-    crypto.sha384.convert(data).bytes;
+Future<Uint8List> signRsaPss(Uint8List data, Wallet wallet) async {
+  final jwk = wallet.toJwk();
+  // Normalize fields of the JWK so the crypto package can parse it correctly.
+  jwk.updateAll(
+      (key, value) => key != 'kty' ? base64Url.normalize(value) : value);
+
+  final signature = await web_crypto.rsaPssSign(
+    data,
+    KeyPair(
+      privateKey: JwkPrivateKey.fromJson(jwk),
+      publicKey: JwkPublicKey.fromJson(jwk),
+    ),
+    saltLength: 0,
+    hashName: 'SHA-256',
+  );
+
+  return signature.bytes;
+}
